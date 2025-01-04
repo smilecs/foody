@@ -7,7 +7,7 @@ import (
 )
 
 type UserRepository struct {
-	Database db.SQLDatabase
+	Database db.Database
 }
 
 func (r *UserRepository) GetUserByID(id int) (*schema.User, error) {
@@ -35,4 +35,8 @@ func (r *UserRepository) CreateUser(user schema.User) (string, error) {
 
 	log.Printf("User inserted with ID: %d", userID)
 	return "", nil
+}
+
+func (r *UserRepository) AuthUser(user schema.User) (string, error){
+
 }

@@ -10,19 +10,21 @@ type Config struct {
     Conn *sqlx.DB
 }
 
-var config = Config{}
-var Instance *SQLDatabase
+var instance Database
 
-func Init() {
-    dbUrl := os.Getenv("DB_URL")
-    conn, err := sqlx.Connect("postgres", dbUrl)
+func Init() Database {
+    dbURL := os.Getenv("DB_URL")
+    conn, err := sqlx.Connect("postgres", dbURL)
     if err != nil {
-        log.Fatal(err)
+        log.Fatalf("failed to connect to the database: %v", err)
     }
-    config.Conn = conn
-    Instance = &SQLDatabase{DB: conn}
+    instance = &SQLDatabase{DB: conn}
+    return instance
 }
 
-func Get() *Config {
-    return &config
+func GetInstance() Database {
+    if instance == nil {
+        log.Fatal("database instance is not initialized")
+    }
+    return instance
 }

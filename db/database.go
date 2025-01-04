@@ -16,9 +16,16 @@ type SQLDatabase struct {
 }
 
 func (s *SQLDatabase) QueryRowx(query string, args ...interface{}) *sqlx.Row {
-    return s.DB.QueryRowx(query, args)
+	return s.DB.QueryRowx(query, args...)
 }
 
-func (s *SQLDatabase) MustExec(query string, args ...interface{}) sql.Result {
-    return s.DB.MustExec(query, args)
+// Queryx executes a query that returns multiple rows.
+func (s *SQLDatabase) Queryx(query string, args ...interface{}) (*sqlx.Rows, error) {
+	return s.DB.Queryx(query, args...)
+}
+
+// MustExec executes a query and returns an error if execution fails.
+func (s *SQLDatabase) MustExec(query string, args ...interface{}) (sql.Result, error) {
+	result, err := s.DB.Exec(query, args...)
+	return result, err
 }
