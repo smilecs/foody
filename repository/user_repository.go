@@ -39,18 +39,18 @@ func (r *UserRepository) CreateUser(user schema.User) (string, error) {
 	return "", nil
 }
 
-func (r *UserRepository) AuthUser(email, password string) (bool, error){
-var hashedPassword string
+func (r *UserRepository) AuthUser(email, password string) (bool, error) {
+	var hashedPassword string
 
-query := `SELECT password FROM users WHERE email = $1`
-err := r.Database.QueryRowx(query, email).Scan(&hashedPassword)
-if err != nil{
-	return false, err
-}
+	query := `SELECT password FROM users WHERE email = $1`
+	err := r.Database.QueryRowx(query, email).Scan(&hashedPassword)
+	if err != nil {
+		return false, err
+	}
 
-err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-if err != nil{
-	return false, err
-}
-return true, err
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	if err != nil {
+		return false, err
+	}
+	return true, err
 }
