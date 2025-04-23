@@ -1,26 +1,32 @@
 package repository
 
 import (
+	"log"
+
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"github.com/smilecs/foody/db"
+	"github.com/smilecs/foody/config"
 	"github.com/smilecs/foody/schema"
-	"log"
 )
 
 type PostRepository struct {
-	Database db.Database
+	Database config.Database
 }
 
-func (r *PostRepository) CreatePost(post schema.Post) error {
+type PostWithMedia struct {
+	schema.Post
+	MediaURL string `db:"media_url"`
+}
+
+func (r *PostRepository) CreatePost(post schema.Post, mediaID uuid.UUID, mediaURL string) error {
 	query := `
-		INSERT INTO post (post_id, author_id, media_id, title, body, tags)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO post (post_id, author_id, media_id, media_url, title, body, tags)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id;
 	`
 
 	var userID int
-	err := r.Database.QueryRowx(query, post.Id, post.AuthorId, post.MediaId, post.Title, post.Body, post.Tags).Scan(&userID)
+	err := r.Database.QueryRowx(query, post.Id, post.AuthorId, mediaID, mediaURL, post.Title, post.Body, post.Tags).Scan(&userID)
 
 	if err != nil {
 		log.Println("error creating post: ", err)
@@ -30,8 +36,8 @@ func (r *PostRepository) CreatePost(post schema.Post) error {
 	return nil
 }
 
-func (r *PostRepository) GetPostByUserID(id uuid.UUID) (*schema.Post, error) {
-	var post schema.Post
+func (r *PostRepository) GetPostByUserID(id uuid.UUID) (*PostWithMedia, error) {
+	var post PostWithMedia
 	err := r.Database.QueryRowx("SELECT * FROM post WHERE author_id = $1", id).StructScan(&post)
 	if err != nil {
 		return nil, err
@@ -39,8 +45,8 @@ func (r *PostRepository) GetPostByUserID(id uuid.UUID) (*schema.Post, error) {
 	return &post, nil
 }
 
-func (r *PostRepository) GetPosts(limit, offset int) ([]schema.Post, error) {
-	var posts []schema.Post
+func (r *PostRepository) GetPosts(limit, offset int) ([]PostWithMedia, error) {
+	var posts []PostWithMedia
 
 	query := `SELECT * FROM post ORDER BY created_at DESC LIMIT $1 OFFSET $2`
 
@@ -57,7 +63,7 @@ func (r *PostRepository) GetPosts(limit, offset int) ([]schema.Post, error) {
 	}(rows)
 
 	for rows.Next() {
-		var post schema.Post
+		var post PostWithMedia
 		if err := rows.StructScan(&post); err != nil {
 			log.Printf("error scanning posts: %v\n", err)
 		}
