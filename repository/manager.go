@@ -1,15 +1,17 @@
 package repository
 
-import "github.com/smilecs/foody/db"
+import "github.com/smilecs/foody/config"
 
 type Manager struct {
-	UserRepo *UserRepository
-	PostRepo *PostRepository
+	UserRepo  *UserRepository
+	PostRepo  *PostRepository
+	MediaRepo *MediaRepository
 }
 
-func NewManager(database db.Database) *Manager {
+func NewManager(database config.Database) *Manager {
 	return &Manager{
-		UserRepo: &UserRepository{Database: database},
-		PostRepo: &PostRepository{Database: database},
+		UserRepo:  &UserRepository{Database: database},
+		PostRepo:  &PostRepository{Database: database},
+		MediaRepo: &MediaRepository{Database: database},
 	}
 }
