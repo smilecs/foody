@@ -13,6 +13,10 @@ type UserRepository struct {
 	Database config.Database
 }
 
+func NewUserRepository(db config.Database) *UserRepository {
+	return &UserRepository{Database: db}
+}
+
 func (r *UserRepository) GetUserByID(id uuid.UUID) (*schema.User, error) {
 	var user schema.User
 	err := r.Database.QueryRowx("SELECT * FROM users WHERE user_id = $1", id).StructScan(&user)

@@ -10,6 +10,10 @@ type MediaRepository struct {
 	Database config.Database
 }
 
+func NewMediaRepository(db config.Database) *MediaRepository {
+	return &MediaRepository{Database: db}
+}
+
 func (r *MediaRepository) CreateMedia(media schema.Media) (uuid.UUID, error) {
 	query := `
 		INSERT INTO media (media_id, url, media_type, author_id)
