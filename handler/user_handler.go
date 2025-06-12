@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/smilecs/foody/config"
@@ -34,9 +35,29 @@ func (u *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	dob := r.FormValue("date_of_birth")
 	password := r.FormValue("password")
+
+	// Validate required fields
+	if username == "" || email == "" || dob == "" || password == "" {
+		http.Error(w, "Missing required fields", http.StatusBadRequest)
+		return
+	}
+
+	// Validate email format
+	if !strings.Contains(email, "@") {
+		http.Error(w, "Invalid email format", http.StatusBadRequest)
+		return
+	}
+
 	file, header, err := r.FormFile("media")
 	if err != nil {
-		http.Error(w, "Missing Profile Image", http.StatusBadGateway)
+		http.Error(w, "Missing Profile Image", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	// Check if file is empty
+	if header.Size == 0 {
+		http.Error(w, "Profile image cannot be empty", http.StatusBadRequest)
 		return
 	}
 
@@ -61,7 +82,6 @@ func (u *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		AuthorId:  user_id,
 	}
 
-	// Save media to database
 	mediaID, err := u.Manager.MediaRepo.CreateMedia(media)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error creating media: %v", err), http.StatusInternalServerError)
@@ -84,6 +104,7 @@ func (u *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(user)
 }
 
 type LoginResponse struct {

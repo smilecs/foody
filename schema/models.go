@@ -53,6 +53,27 @@ type Recipe struct {
 	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
+type MealType string
+
+const (
+	Breakfast MealType = "breakfast"
+	Lunch     MealType = "lunch"
+	Dinner    MealType = "dinner"
+	Snack     MealType = "snack"
+)
+
+type MealPlan struct {
+	Id        uuid.UUID  `json:"meal_plan_id"`
+	RecipeId  uuid.UUID  `json:"recipe_id"`
+	AuthorId  uuid.UUID  `json:"author_id"`
+	MealType  MealType   `json:"meal_type"`
+	Date      time.Time  `json:"date"`
+	Verified  bool       `json:"verified"`
+	PhotoId   *uuid.UUID `json:"photo_id,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+}
+
 type MediaType string
 
 const (

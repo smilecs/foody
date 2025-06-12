@@ -1,7 +1,9 @@
 package main
 
 import (
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/smilecs/foody/config"
@@ -13,18 +15,14 @@ import (
 func main() {
 	cfg := config.Init()
 
-	// Create a SQLDatabase wrapper around the sqlx.DB
-	dbWrapper := &config.SQLDatabase{
-		DB: cfg.DB,
-	}
-
 	// Initialize manager with all repositories
-	manager := repository.NewManager(dbWrapper)
+	manager := repository.NewManager(cfg.DB)
 
 	// Initialize handlers with manager
 	userHandler := handler.NewUserHandler(manager)
 	postHandler := handler.NewPostHandler(manager)
 	recipeHandler := handler.NewRecipeHandler(manager)
+	mealPlanHandler := handler.NewMealPlanHandler(manager)
 
 	router := chi.NewRouter()
 
@@ -52,8 +50,26 @@ func main() {
 			r.Put("/{id}", recipeHandler.UpdateRecipe)
 			r.Delete("/{id}", recipeHandler.DeleteRecipe)
 		})
+
+		// Meal Plan routes
+		r.Route("/api/meal-plans", func(r chi.Router) {
+			r.Post("/", mealPlanHandler.CreateMealPlan)
+			r.Get("/author/{author_id}", mealPlanHandler.GetMealPlansByAuthorID)
+			r.Get("/{id}", mealPlanHandler.GetMealPlanByID)
+			r.Put("/{id}", mealPlanHandler.UpdateMealPlan)
+			r.Delete("/{id}", mealPlanHandler.DeleteMealPlan)
+		})
 	})
 
 	// Start the server
-	http.ListenAndServe(":8080", router)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // default port if PORT env var is not set
+	}
+
+	log.Println("Server is starting on port 8080...")
+	err := http.ListenAndServe(":"+port, router)
+	if err != nil {
+		log.Fatalf("Server failed to start: %v", err)
+	}
 }
